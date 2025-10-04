@@ -1,0 +1,27 @@
+{
+  "courts": [
+    {
+      "id": 1,
+      "name": "1号场地",
+      "status": "available",
+      "description": "主场地"
+    },
+    {
+      "id": 2,
+      "name": "2号场地", 
+      "status": "available",
+      "description": "副场地"
+    },
+    {
+      "id": 3,
+      "name": "3号场地",
+      "status": "available", 
+      "description": "备用场地"
+    }
+  ],
+  "system": {
+    "defaultMatchDuration": 30,
+    "autoAdvancement": true,
+    "realTimeUpdates": true
+  }
+}

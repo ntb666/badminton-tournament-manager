@@ -1,0 +1,227 @@
+// schema.prisma
+// 羽毛球赛事管理系统数据库模型定义
+// 支持淘汰赛制、多场地管理、实时比分记录
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"      // 数据库类型：SQLite（轻量级，适合小型应用）
+  url      = "file:./dev.db"  // 数据库文件路径
+}
+
+// 比赛类型枚举：定义支持的羽毛球比赛项目
+enum MatchType {
+  MEN_SINGLE     // 男子单打
+  WOMEN_SINGLE   // 女子单打
+  MEN_DOUBLE     // 男子双打
+  WOMEN_DOUBLE   // 女子双打  
+  MIX_DOUBLE     // 混合双打
+}
+
+// 赛程模型：管理整个锦标赛的结构和流程
+model Tournament {
+  id          Int         @id @default(autoincrement())  // 赛程唯一标识
+  name        String                                       // 赛程名称（如："2024年秋季羽毛球锦标赛"）
+  matchType   MatchType                                   // 比赛类型（男双/女双/混双等）
+  status      String      @default("draft")               // 赛程状态："draft"(草稿)/"active"(进行中)/"completed"(已完成)
+  totalRounds Int                                         // 总轮数（根据参赛队伍数计算得出）
+  totalTeams  Int                                         // 参赛队伍总数
+  
+  // 赛程配置
+  tournamentType String @default("single_elimination")    // 赛制类型："single_elimination"(单淘汰)/"double_elimination"(双淘汰)
+  seedingMethod  String @default("random")                // 排种方法："random"(随机)/"manual"(手动)/"ranking"(排名)
+  hasBronzeMatch Boolean @default(false)                  // 是否设置铜牌赛 （true=有铜牌赛，false=无铜牌赛）
+  
+  // 时间管理
+  startDate   DateTime?                                   // 赛程开始时间
+  endDate     DateTime?                                   // 赛程结束时间
+  createdAt   DateTime    @default(now())                 // 创建时间
+  updatedAt   DateTime    @updatedAt                      // 更新时间
+  
+  // 关系字段
+  rounds      TournamentRound[]                           // 所有轮次
+  matches     Match[]                                     // 所有比赛
+  teams       TournamentTeam[]                            // 参赛队伍（含种子排序）
+}
+
+// 赛程轮次模型：表示锦标赛的每一轮
+model TournamentRound {
+  id           Int         @id @default(autoincrement())  // 轮次唯一标识
+  tournamentId Int                                         // 所属赛程ID
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  
+  roundNumber  Int                                         // 轮次编号（1=第一轮，2=第二轮...）
+  roundName    String                                      // 轮次名称（如："第一轮"、"四分之一决赛"、"半决赛"、"决赛"）
+  totalMatches Int                                         // 本轮比赛场数
+  status       String      @default("pending")            // 轮次状态："pending"/"in-progress"/"completed"
+  
+  // 时间安排
+  scheduledDate DateTime?                                  // 计划比赛日期
+  startTime     DateTime?                                  // 实际开始时间
+  endTime       DateTime?                                  // 实际结束时间
+  
+  // 关系字段
+  matches      Match[]                                     // 本轮的所有比赛
+  
+  @@unique([tournamentId, roundNumber])                    // 确保同一赛程内轮次编号唯一
+}
+
+// 赛程参赛队伍模型：记录队伍在特定赛程中的信息
+model TournamentTeam {
+  id           Int         @id @default(autoincrement())  // 记录唯一标识
+  tournamentId Int                                         // 所属赛程ID
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamId       Int                                         // 队伍ID
+  team         Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  // 种子和排序信息
+  seedNumber   Int?                                        // 种子号（1号种子最强，null表示非种子选手）
+  initialPosition Int                                      // 初始位置（在赛程树中的起始位置，1-N）
+  
+  // 队伍状态
+  status       String      @default("active")             // 状态："active"(活跃)/"eliminated"(淘汰)/"withdrawn"(退赛)
+  eliminatedInRound Int?                                   // 被淘汰的轮次（null表示未被淘汰）
+  finalRanking Int?                                        // 最终排名
+  
+  @@unique([tournamentId, teamId])                         // 确保同一赛程内队伍唯一
+  @@unique([tournamentId, seedNumber])                     // 确保同一赛程内种子号唯一
+  @@unique([tournamentId, initialPosition])               // 确保同一赛程内初始位置唯一
+}
+
+// 队伍模型：存储参赛队伍信息
+model Team {
+  id       Int      @id @default(autoincrement())  // 队伍唯一标识
+  name     String                                   // 队伍名称（用于系统内部标识）
+  players  String                                   // 队员姓名（格式："张三,李四" 或 "张三，李四"）
+  type     MatchType                                // 比赛类型（男双/女双/混双）
+
+  // 关系字段：一个队伍可以参与多场比赛和多个赛程
+  teamAMatches     Match[]           @relation("TeamA")           // 作为A队的所有比赛
+  teamBMatches     Match[]           @relation("TeamB")           // 作为B队的所有比赛  
+  wonMatches       Match[]           @relation("Winner")          // 获胜的所有比赛
+  tournamentTeams  TournamentTeam[]                              // 参与的赛程记录
+}
+
+// 场地模型：管理比赛场地信息
+model Court {
+  id       Int      @id @default(autoincrement())  // 场地唯一标识
+  name     String                                   // 场地名称（如："1号场地"、"Court A"）
+
+  // 关系字段：一个场地可以承办多场比赛（按时间顺序）
+  matches  Match[]                                  // 在此场地进行的所有比赛
+}
+
+// 系统配置模型：存储系统配置信息
+model SystemConfig {
+  id               Int      @id @default(autoincrement())  // 配置唯一标识
+  key              String   @unique                        // 配置键名
+  value            String                                   // 配置值（JSON格式）
+  createdAt        DateTime @default(now())               // 创建时间
+  updatedAt        DateTime @updatedAt                    // 更新时间
+}
+
+// 比赛模型：核心模型，管理单场比赛的所有信息
+model Match {
+  id        Int       @id @default(autoincrement())  // 比赛唯一标识
+  matchType MatchType                                 // 比赛类型（继承自参赛队伍）
+  
+  // 赛程关联：每场比赛属于特定的赛程和轮次
+  tournamentId    Int?                                                  // 所属赛程ID（可为空，兼容旧数据）
+  tournament      Tournament?  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  roundId         Int?                                                  // 所属轮次ID（可为空，兼容旧数据）
+  tournamentRound TournamentRound? @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  round           Int                                                   // 比赛轮次（1=第一轮，2=第二轮...）兼容字段
+  
+  // 赛程树位置：在赛程树中的精确位置
+  treePosition    Int?                                                  // 在赛程树中的位置索引
+  matchNumber     String?                                               // 比赛编号（如："R1-M1"表示第1轮第1场）
+  isBronzeMatch  Boolean @default(false)                                // 是否为铜牌赛（true=是铜牌赛，false=非铜牌赛）
+  
+  // UI位置缓存：存储在前端界面中的显示位置
+  uiPositionTop   Float?                                                // UI中的垂直位置（像素）
+  uiIsLongCard    Boolean?                                              // 是否为长卡片（true=长卡片140px，false=短卡片70px）
+  uiPositionCalculated Boolean @default(false)                         // 位置是否已计算过
+
+  // 参赛队伍关系：每场比赛有两支队伍对战
+  teamA     Team?     @relation("TeamA", fields: [teamAId], references: [id])  // A队详细信息（可为空，待晋级）
+  teamAId   Int?                                                                // A队ID（外键，可为空）
+  teamB     Team?     @relation("TeamB", fields: [teamBId], references: [id])  // B队详细信息（可为空，待晋级）
+  teamBId   Int?                                                                // B队ID（外键，可为空）
+
+  // 场地分配：比赛可能尚未分配场地
+  court     Court?    @relation(fields: [courtId], references: [id])           // 分配的场地（可为空）
+  courtId   Int?                                                               // 场地ID（外键，可为空）
+
+  // 淘汰赛树状结构：支持单淘汰赛制
+  parent    Match?    @relation("ParentChild", fields: [parentId], references: [id])  // 父级比赛（下一轮）
+  parentId  Int?                                                                       // 父级比赛ID（可为空，决赛无父级）
+  children  Match[]   @relation("ParentChild")                                         // 子级比赛（上一轮的比赛）
+
+  // 比赛结果：基础比分信息
+  scoreA    Int?                                      // A队总分（获胜局数，可为空表示未开始）
+  scoreB    Int?                                      // B队总分（获胜局数，可为空表示未开始）
+  status    String @default("pending")               // 比赛状态："pending"(等待)/"in-progress"(进行中)/"completed"(已完成)
+  winnerId  Int?                                     // 获胜队伍ID（可为空表示未完成）
+  winner    Team?     @relation("Winner", fields: [winnerId], references: [id])  // 获胜队伍详细信息
+  
+  // 详细比分数据：支持复杂的比分记录和回放
+  scoreHistory String?  // JSON格式存储详细比分历史
+                        // 结构：[{setNumber: 1, scoreA: 21, scoreB: 19, pointHistory: [{scorer: "A", scoreA: 1, scoreB: 0},...]}]
+                        // 记录每一局的详细得分过程，支持比赛回放和统计分析
+  
+  gameSettings String?  // JSON格式存储比赛设置  
+                        // 结构：{maxSets: 3, pointsPerSet: 21, deuceDiff: 2, maxGamePoits: 30}
+                        // 定义比赛规则：几局几胜制、每局多少分、平分后领先分数等
+}
+
+/*
+数据库关系说明：
+
+1. Team -> Match 关系（一对多）：
+   - 一个队伍可以参与多场比赛
+   - 每场比赛需要两个队伍（teamA 和 teamB）
+   - 获胜队伍通过 winnerId 关联
+
+2. Court -> Match 关系（一对多）：
+   - 一个场地可以承办多场比赛（按时间顺序）
+   - 比赛可能尚未分配场地（courtId 可为空）
+
+3. Match -> Match 关系（自关联树状结构）：
+   - 支持单淘汰赛制的树状结构
+   - parent 指向下一轮比赛，children 包含上一轮比赛
+   - 第一轮比赛无 children，决赛无 parent
+
+数据示例：
+
+Team:
+{
+  "id": 1,
+  "name": "MenDouble Team 1", 
+  "players": "张三,李四",
+  "type": "MEN_DOUBLE"
+}
+
+Match (进行中):
+{
+  "id": 1,
+  "matchType": "MEN_DOUBLE",
+  "round": 1,
+  "teamAId": 1,
+  "teamBId": 2, 
+  "courtId": 1,
+  "scoreA": 1,
+  "scoreB": 0,
+  "status": "in-progress",
+  "scoreHistory": "[{\"setNumber\":1,\"scoreA\":21,\"scoreB\":19,\"pointHistory\":[{\"scorer\":\"A\",\"scoreA\":1,\"scoreB\":0}]}]",
+  "gameSettings": "{\"maxSets\":3,\"pointsPerSet\":21,\"deuceDiff\":2}"
+}
+
+部署说明：
+- 开发环境：使用 SQLite 数据库文件
+- 生产环境：建议切换到 PostgreSQL 或 MySQL
+- 迁移命令：npx prisma migrate dev
+- 生成客户端：npx prisma generate
+- 数据库查看：npx prisma studio
+*/

@@ -1,0 +1,484 @@
+/* 仪表盘现代化样式 */
+.dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: relative;
+}
+.backgroundDecor {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;
+}
+.blob1, .blob2, .blob3 {
+  position: absolute; border-radius: 50%; opacity: 0.15;
+}
+.blob1 { top: -100px; left: -100px; width: 300px; height: 300px; background: #3b82f6; animation: float 6s infinite; }
+.blob2 { top: -50px; right: -100px; width: 400px; height: 400px; background: #8b5cf6; animation: float 8s infinite reverse; }
+.blob3 { bottom: -100px; left: 20%; width: 350px; height: 350px; background: #ec4899; animation: float 7s infinite; }
+@keyframes float { 0%,100%{transform:translateY(0);} 33%{transform:translateY(-20px);} 66%{transform:translateY(10px);} }
+
+.navbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.navContainer {
+  max-width: none; /* 移除宽度限制，充分利用屏幕宽度 */
+  margin: 0 auto; 
+  padding: 1rem 1.5rem; 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+}
+.navBrand { display: flex; align-items: center; gap: 1rem; }
+.navIcon { width: 48px; height: 48px; background: linear-gradient(135deg,#3b82f6,#8b5cf6); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+.navTitle { color: #fff; font-size: 1.5rem; font-weight: 700; margin: 0; }
+.navSubtitle { color: #94a3b8; font-size: 0.875rem; margin: 0; }
+.navActions { display: flex; align-items: center; gap: 1rem; }
+
+/* 导入按钮样式 */
+.importBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.importBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* 管理员按钮样式 */
+.adminBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.adminBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+.statusIndicator { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem; background: rgba(34,197,94,0.2); border: 1px solid rgba(34,197,94,0.3); border-radius: 12px; }
+.statusDot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; }
+.statusText { color: #22c55e; font-size: 0.875rem; font-weight: 500; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+.refreshButton { padding: 0.75rem; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; color: #60a5fa; cursor: pointer; transition: all 0.3s; }
+.refreshButton:hover { background: rgba(59,130,246,0.3); transform: scale(1.05); }
+
+.mainContent { 
+  position: relative; 
+  z-index: 10; 
+  max-width: none; /* 移除宽度限制，充分利用屏幕宽度 */
+  margin: 0 auto; 
+  padding: 2rem 1.5rem; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 2rem; 
+}
+.statsGrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 1.5rem; }
+.statCard { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 1.5rem; transition: all 0.3s; position: relative; overflow: hidden; }
+.statCard:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.2); }
+.statCard.blue::before { background: #3b82f6; }
+.statCard.green::before { background: #22c55e; }
+.statCard.yellow::before { background: #f59e0b; }
+.statCard.purple::before { background: #8b5cf6; }
+.statContent { display: flex; align-items: center; gap: 1rem; }
+.statIcon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.statIcon.blue { background: rgba(59,130,246,0.2); }
+.statIcon.green { background: rgba(34,197,94,0.2); }
+.statIcon.yellow { background: rgba(245,158,11,0.2); }
+.statIcon.purple { background: rgba(139,92,246,0.2); }
+.statLabel { font-size: 0.875rem; font-weight: 500; margin: 0 0 0.25rem 0; }
+.statLabel.blue { color: #60a5fa; }
+.statLabel.green { color: #4ade80; }
+.statLabel.yellow { color: #fbbf24; }
+.statLabel.purple { color: #a78bfa; }
+.statValue { color: #fff; font-size: 1.75rem; font-weight: 700; margin: 0; }
+.cardContainer { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+.cardHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+.cardTitle { display: flex; align-items: center; gap: 1rem; }
+.cardTitleIcon { width: 48px; height: 48px; background: linear-gradient(135deg,#10b981,#059669); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(16,185,129,0.3); }
+.cardTitleText { color: #fff; font-size: 1.5rem; font-weight: 700; margin: 0; }
+.cardSubtitle { color: #94a3b8; font-size: 0.875rem; margin: 0; }
+.courtsGrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(500px,1fr)); gap: 1.5rem; }
+.courtCard { background: linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05)); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 1.5rem; cursor: pointer; transition: all 0.4s; position: relative; overflow: hidden; }
+.courtCard:hover { transform: scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-color: rgba(59,130,246,0.5); }
+.courtCard.hasMatch { border-color: rgba(34,197,94,0.4); }
+.courtCard.hasMatch:hover { border-color: rgba(34,197,94,0.7); box-shadow: 0 20px 40px rgba(34,197,94,0.2); }
+.courtCard.hasMatch::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(34,197,94,0.05), rgba(34,197,94,0.02));
+  pointer-events: none;
+}
+.courtHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.courtInfo { display: flex; align-items: center; gap: 1rem; }
+.courtNumber { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.125rem; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+.courtNumber.active { background: linear-gradient(135deg,#22c55e,#16a34a); }
+.courtNumber.inactive { background: linear-gradient(135deg,#6b7280,#4b5563); }
+.courtName { color: #fff; font-size: 1.25rem; font-weight: 700; margin: 0; }
+.courtStatus { font-size: 0.875rem; font-weight: 500; margin: 0; }
+.courtStatus.active { color: #22c55e; }
+.courtStatus.inactive { color: #94a3b8; }
+.courtStatusBadge { padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; border: 1px solid; }
+.courtStatusBadge.active { background: rgba(34,197,94,0.2); color: #22c55e; border-color: rgba(34,197,94,0.5); }
+.courtStatusBadge.inactive { background: rgba(107,114,128,0.2); color: #94a3b8; border-color: rgba(107,114,128,0.5); }
+.courtStatusIndicator { width: 12px; height: 12px; border-radius: 50%; position: absolute; top: 1.5rem; right: 1.5rem; }
+.courtStatusIndicator.active { background: #22c55e; box-shadow: 0 0 10px rgba(34,197,94,0.5); animation: pulse 2s infinite; }
+.courtStatusIndicator.inactive { background: #6b7280; }
+.matchInfo { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; backdrop-filter: blur(10px); }
+
+/* 比赛头部信息 */
+.matchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.matchType {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.matchRound {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.scoreTable { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.scoreTable th { color: #94a3b8; font-size: 0.75rem; font-weight: 600; text-align: center; padding: 0.75rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.scoreTable th:first-child { text-align: left; width: 40%; }
+.scoreTable th:not(:first-child) { width: 20%; }
+.scoreTable td { padding: 1rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
+.scoreTable td:first-child { text-align: left; }
+.teamName { font-weight: 700; font-size: 0.875rem; }
+.teamName.teamA { color: #60a5fa; }
+.teamName.teamB { color: #f87171; }
+.setScore { padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.875rem; font-weight: 700; text-align: center; border: 1px solid; min-width: 40px; }
+.setScore.winner { background: rgba(34,197,94,0.2); color: #22c55e; border-color: rgba(34,197,94,0.5); }
+.setScore.loser { background: rgba(107,114,128,0.2); color: #94a3b8; border-color: rgba(107,114,128,0.5); }
+.totalScore { font-size: 1.5rem; font-weight: 700; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid; text-align: center; min-width: 60px; }
+.totalScore.teamA { background: rgba(59,130,246,0.2); color: #60a5fa; border-color: rgba(59,130,246,0.5); }
+.totalScore.teamB { background: rgba(248,113,113,0.2); color: #f87171; border-color: rgba(248,113,113,0.5); }
+.matchStatusBadge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.875rem; font-weight: 700; border: 1px solid; margin-top: 1rem; }
+.matchStatusBadge.completed { background: rgba(34,197,94,0.2); color: #22c55e; border-color: rgba(34,197,94,0.5); }
+.matchStatusBadge.playing { background: rgba(245,158,11,0.2); color: #fbbf24; border-color: rgba(245,158,11,0.5); }
+.emptyState { text-align: center; padding: 3rem 1rem; }
+.emptyStateIcon { font-size: 2rem; color: #94a3b8; margin-bottom: 1rem; }
+.emptyStateText { color: #94a3b8; font-size: 1.125rem; margin-bottom: 1.5rem; }
+.assignButton { background: linear-gradient(135deg,#3b82f6,#8b5cf6); color: #fff; border: none; padding: 0.875rem 1.75rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 25px rgba(59,130,246,0.3); }
+.assignButton:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(59,130,246,0.4); }
+.assignButton:disabled { 
+  background: linear-gradient(135deg,#6b7280,#4b5563); 
+  cursor: not-allowed; 
+  opacity: 0.6;
+  box-shadow: 0 5px 15px rgba(107,114,128,0.2);
+}
+.assignButton:disabled:hover {
+  transform: none;
+  box-shadow: 0 5px 15px rgba(107,114,128,0.2);
+}
+
+/* 选中比赛时的特殊按钮样式 */
+.assignButton.selected {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+  animation: pulse-selected 2s infinite;
+}
+
+.assignButton.selected:hover {
+  box-shadow: 0 15px 35px rgba(245, 158, 11, 0.5);
+}
+
+/* 排队按钮样式 */
+.queueButton {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.queueButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.queueButton.selected {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  animation: pulse-selected 2s infinite;
+}
+
+@keyframes pulse-selected {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+.tournamentSelector { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.tournamentButton { padding: 0.75rem 1.5rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.3s; }
+.tournamentButton.active { background: linear-gradient(135deg,#3b82f6,#8b5cf6); color: #fff; box-shadow: 0 10px 25px rgba(59,130,246,0.3); transform: scale(1.05); }
+.tournamentButton.inactive { background: rgba(107,114,128,0.3); color: #d1d5db; border: 1px solid rgba(107,114,128,0.5); }
+.tournamentButton.inactive:hover { background: rgba(107,114,128,0.4); transform: scale(1.02); }
+.pendingGrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: 1rem; }
+.pendingCard { background: linear-gradient(135deg,rgba(245,158,11,0.1),rgba(239,68,68,0.1)); backdrop-filter: blur(20px); border: 1px solid rgba(245,158,11,0.3); border-radius: 16px; padding: 1.5rem; text-align: center; transition: all 0.3s; position: relative; }
+.pendingCard:hover { transform: scale(1.05); box-shadow: 0 15px 30px rgba(245,158,11,0.2); }
+.pendingMatchNumber { 
+  position: absolute; 
+  top: -8px; 
+  left: -8px; 
+  background: linear-gradient(135deg, #f59e0b, #ef4444); 
+  color: white; 
+  font-weight: 700; 
+  font-size: 0.875rem; 
+  padding: 0.5rem 0.75rem; 
+  border-radius: 50%; 
+  min-width: 32px; 
+  height: 32px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); 
+  z-index: 10;
+}
+.pendingMatchTeams { color: #fbbf24; font-weight: 700; font-size: 1.125rem; margin-bottom: 0.75rem; }
+.pendingMatchMeta { background: rgba(255,255,255,0.1); color: #94a3b8; font-size: 0.875rem; padding: 0.5rem 1rem; border-radius: 8px; display: inline-block; }
+.loadingContainer { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0f172a; }
+.loadingContent { text-align: center; }
+.spinner { width: 48px; height: 48px; border: 4px solid rgba(59,130,246,0.3); border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { 0%{transform:rotate(0);} 100%{transform:rotate(360deg);} }
+.loadingText { color: #fff; font-size: 1.125rem; font-weight: 600; }
+
+/* 比赛分配对话框样式 */
+.dialogOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.dialogContent {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(51, 65, 85, 0.95));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 70vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+}
+
+.dialogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.dialogHeader h3 {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dialogCloseButton {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.dialogCloseButton:hover {
+  background: rgba(248, 113, 113, 0.2);
+  color: #f87171;
+}
+
+.dialogBody {
+  padding: 1.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.emptyDialogState {
+  text-align: center;
+  padding: 2rem;
+  color: #94a3b8;
+}
+
+.matchSelectionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.matchSelectionItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.matchSelectionItem:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+.matchSelectionInfo {
+  flex: 1;
+}
+
+.matchSelectionTeams {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.matchSelectionMeta {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.matchSelectionAction {
+  color: #60a5fa;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s;
+}
+
+.matchSelectionItem:hover .matchSelectionAction {
+  color: #3b82f6;
+  transform: translateX(4px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 响应式设计 - 确保在各种屏幕尺寸下都能充分利用宽度 */
+@media (min-width: 1920px) {
+  .navContainer,
+  .mainContent {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+@media (min-width: 2560px) {
+  .navContainer,
+  .mainContent {
+    padding-left: 5rem;
+    padding-right: 5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .navContainer,
+  .mainContent {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scoreInputButton {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(245,158,11,0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scoreInputButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245,158,11,0.4);
+  background: linear-gradient(135deg, #d97706, #b45309);
+}

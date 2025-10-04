@@ -1,0 +1,170 @@
+/* 引入现代化中文字体 - 必须在最开头 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans CN', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', sans-serif;
+  background-color: #1a1a1a;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 响应式工具类 */
+@layer utilities {
+  .text-responsive-xl {
+    @apply text-xl;
+  }
+  
+  @screen md {
+    .text-responsive-xl {
+      @apply text-2xl;
+    }
+  }
+  
+  .card-responsive-height {
+    min-height: 200px;
+  }
+  
+  @screen lg {
+    .card-responsive-height {
+      min-height: 280px;
+    }
+  }
+}
+
+/* 确保触摸友好的按钮 */
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 防止文字选中 */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+}
+
+/* 滚动条样式优化 */
+[data-scroll-container] {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b #334155;
+}
+
+[data-scroll-container]::-webkit-scrollbar {
+  height: 6px;
+}
+
+[data-scroll-container]::-webkit-scrollbar-track {
+  background: #334155;
+  border-radius: 3px;
+}
+
+[data-scroll-container]::-webkit-scrollbar-thumb {
+  background: #64748b;
+  border-radius: 3px;
+}
+
+[data-scroll-container]::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 表格网格线优化 */
+.score-table-cell {
+  transition: background-color 0.2s ease;
+}
+
+.score-table-cell:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.court-card {
+  @apply bg-white rounded-lg shadow-md p-6 border-2 transition-all duration-200;
+}
+
+.court-card.active {
+  @apply border-blue-500 bg-blue-50;
+}
+
+.score-input {
+  @apply text-3xl font-bold text-center w-20 h-16 border-2 rounded-lg;
+}
+
+.team-card {
+  @apply bg-white rounded-lg p-4 border flex-1;
+}
+
+.team-card.winner {
+  @apply border-green-500 bg-green-50;
+}
+
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200;
+}
+
+.btn-success {
+  @apply bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200;
+}
+
+.btn-warning {
+  @apply bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200;
+}
+
+.match-status {
+  @apply inline-block px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.match-status.playing {
+  @apply bg-green-100 text-green-800;
+}
+
+.match-status.waiting {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.match-status.completed {
+  @apply bg-gray-100 text-gray-800;
+}
+
+/* 中文字体优化 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans CN', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* 按钮文字优化 */
+button {
+  font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans CN', sans-serif;
+  font-weight: 500;
+}
+
+/* 输入框文字优化 */
+input, textarea, select {
+  font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans CN', sans-serif;
+}
+
+/* 表格文字优化 */
+table, th, td {
+  font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans CN', sans-serif;
+}
+
+/* 卡片标题优化 */
+.card-title {
+  font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans CN', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}

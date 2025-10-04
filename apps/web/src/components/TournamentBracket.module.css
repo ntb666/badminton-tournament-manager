@@ -1,0 +1,1015 @@
+/* 基础容器样式 */
+.container {
+  width: 100%;
+  padding: 24px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  min-height: 100vh;
+  color: white;
+  overflow-x: hidden; /* 禁用水平滚动 */
+}
+
+/* 滚动条样式 */
+.container::-webkit-scrollbar,
+.bracketWrapper::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.container::-webkit-scrollbar-track,
+.bracketWrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.container::-webkit-scrollbar-thumb,
+.bracketWrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.container::-webkit-scrollbar-thumb:hover,
+.bracketWrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.headerIcon {
+  color: #059669;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+/* 选中比赛信息样式 */
+.selectedMatchInfo {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.selectedMatchTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 8px;
+}
+
+.selectedMatchTeams {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #78350f;
+  margin-bottom: 8px;
+}
+
+.selectedMatchInstruction {
+  font-size: 0.9rem;
+  color: #a16207;
+  font-style: italic;
+}
+
+/* 加载状态 */
+.loadingSpinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #059669;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { 
+    transform: rotate(0deg); 
+  }
+  100% { 
+    transform: rotate(360deg); 
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  color: #6b7280;
+}
+
+/* 锦标赛信息 */
+.tournamentInfo {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tournamentInfo h3 {
+  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.tournamentInfo ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tournamentInfo li {
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.tournamentInfo li:last-child {
+  border-bottom: none;
+}
+
+/* 赛程容器 */
+.bracketWrapper {
+  overflow-x: hidden; /* 禁用水平滚动 */
+  overflow-y: visible; /* 垂直可见 */
+  width: 100%;
+  padding: 16px;
+}
+
+.bracketContainer {
+  position: relative;
+  display: flex;
+  gap: 2%; /* 增加轮次间距从1%到2% */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+  padding: 20px; /* 增加内边距从12px到20px */
+  width: 100%; /* 确保填满容器宽度 */
+}
+
+.connectionsLayer {
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 比赛卡片 */
+.matchList {
+  position: relative;
+  min-height: 2000px; /* 减少高度 */
+  flex: 1;
+}
+
+.matchWrapper {
+  position: relative;
+}
+
+.matchCard {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 8px;
+  padding: 12px; /* 增加内边距从10px到12px */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+  position: relative;
+  min-width: 120px; /* 减少最小宽度确保在小屏幕上也能显示 */
+  width: 100%; /* 自适应父容器宽度 */
+  max-width: none; /* 移除最大宽度限制 */
+  min-height: 130px; /* 设置最小高度确保不重叠 */
+  color: #1e293b;
+}
+
+.matchCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.matchCard.pending {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #1e40af;
+}
+
+.matchCard.playing {
+  border-color: #059669;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #065f46;
+  animation: pulse 2s infinite;
+}
+
+.matchCard.completed {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #ecfdf5 0%, #bbf7d0 100%);
+  color: #065f46;
+}
+
+.matchCard.placeholder {
+  border-color: #9ca3af;
+  background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+  color: #6b7280;
+  border-style: dashed;
+}
+
+/* 可点击的比赛卡片样式 */
+.matchCard.clickable {
+  transition: all 0.3s ease;
+}
+
+.matchCard.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  border-color: #3b82f6;
+}
+
+/* 选中状态样式 */
+.matchCard.selected {
+  border-color: #f59e0b !important;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  color: #92400e !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3) !important;
+  transform: scale(1.02);
+}
+
+/* 铜牌赛样式 */
+.matchCard.bronzeMatch {
+  border: 2px solid #cd7f32;
+  background: linear-gradient(135deg, #fff8e7 0%, #ffeaa7 100%);
+  box-shadow: 0 4px 12px rgba(205, 127, 50, 0.3);
+  position: relative;
+  overflow: visible;
+}
+
+.matchCard.bronzeMatch::before {
+  content: '🥉';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #cd7f32;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  z-index: 10;
+}
+
+/* 决赛样式 */
+.matchCard.finalMatch {
+  border: 3px solid #ffd700;
+  background: linear-gradient(135deg, #fffef7 0%, #fef3c7 100%);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  position: relative;
+  overflow: visible;
+}
+
+.matchCard.finalMatch::before {
+  content: '🏆';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #ffd700;
+  color: #92400e;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  z-index: 10;
+  border: 2px solid #92400e;
+}
+
+/* 不可分配的比赛卡片样式 */
+.matchCard.pending:not(.clickable) {
+  opacity: 0.6;
+  border-style: dashed;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #6b7280;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+  }
+  50% { 
+    opacity: 0.8; 
+  }
+}
+
+.matchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+/* 铜牌赛标识 - 长卡片 */
+.bronzeLabel {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+/* 铜牌赛标识 - 短卡片 */
+.bronzeLabelCompact {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.75rem;
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: white;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* 决赛标识 - 长卡片 */
+.finalLabel {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #f59e0b, #ffd700);
+  color: #92400e;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  border: 1px solid #92400e;
+}
+
+/* 决赛标识 - 短卡片 */
+.finalLabelCompact {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 0.75rem;
+  background: linear-gradient(135deg, #f59e0b, #ffd700);
+  color: #92400e;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  border: 1px solid #92400e;
+}
+
+.matchId {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.7rem; /* 稍微减小字体 */
+}
+
+.statusContainer {
+  display: flex;
+  align-items: center;
+  gap: 3px; /* 减少间距 */
+}
+
+.status {
+  font-size: 0.7rem; /* 稍微减小字体 */
+  font-weight: 500;
+  padding: 2px 4px; /* 减少padding */
+  border-radius: 4px;
+}
+
+.status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status.playing {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+/* 占位符样式 */
+.placeholderContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.placeholderTeam {
+  padding: 6px 12px;
+  border: 1px dashed #d1d5db;
+  border-radius: 4px;
+  width: 100%;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.placeholderVs {
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+/* 队伍信息 */
+.teamsContainer {
+  width: 100%;
+}
+
+.matchLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.teamInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: #f8fafc;
+  transition: background-color 0.2s;
+}
+
+.teamInfo.winner {
+  background: #ecfdf5;
+  border: 1px solid #10b981;
+}
+
+.teamName {
+  font-weight: 600;
+  color: #374151;
+  flex: 1;
+  font-size: 0.875rem;
+}
+
+.teamName.winner {
+  color: #065f46;
+}
+
+.scoreDisplay {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #1f2937;
+  min-width: 24px;
+  text-align: center;
+}
+
+.versusContainer {
+  text-align: center;
+  margin: 4px 0;
+}
+
+.versus {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+/* 比分详情 */
+.setScores {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.setScore {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+/* 简洁比分显示样式 */
+.compactScoreDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.teamScoreLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.teamScoreLine .teamInfo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0; /* 允许文本截断 */
+}
+
+.teamScoreLine .setScores {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  flex-shrink: 0;
+}
+
+.teamScoreLine .setScore {
+  background: #374151;
+  color: #f3f4f6;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+}
+
+.teamScoreLine .setScore.winningScore {
+  background: #059669;
+  color: white;
+  font-weight: 700;
+}
+
+.courtInfo {
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+/* 连接线 */
+.connector {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  width: 40px;
+  height: 2px;
+  background: #d1d5db;
+  transform: translateY(-50%);
+}
+
+.connector::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: -3px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid #d1d5db;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .bracketContainer {
+    gap: 1.5%; /* 保持适当间距 */
+    padding: 16px; /* 保持适当内边距 */
+  }
+  
+  .round {
+    min-width: 100px; /* 进一步减少最小宽度 */
+  }
+  
+  .roundTitle {
+    font-size: 0.9rem;
+    padding: 6px 4px;
+  }
+  
+  .matchCard {
+    padding: 8px;
+    min-width: 100px;
+    font-size: 0.85rem;
+  }
+  
+  .teamName {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+  
+  .bracketContainer {
+    gap: 1%; /* 保持基本间距 */
+    padding: 12px; /* 保持基本内边距 */
+  }
+  
+  .round {
+    min-width: 80px;
+  }
+  
+  .roundTitle {
+    font-size: 0.8rem;
+    padding: 4px 2px;
+  }
+  
+  .matchCard {
+    padding: 6px;
+    min-width: 80px;
+    font-size: 0.75rem;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .teamName {
+    font-size: 0.7rem;
+  }
+  
+  .matchId {
+    font-size: 0.6rem;
+  }
+}
+
+/* Tournament轮次布局样式 */
+.tournamentContainer {
+  width: 100%;
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  padding: 24px;
+}
+
+/* 树状结构样式 */
+.bracketContainer {
+  width: 100%;
+  overflow: auto;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  padding: 24px;
+}
+
+.bracketSvg {
+  position: relative;
+  min-height: 400px;
+}
+
+.treeMatchCard {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(5, 150, 105, 0.3);
+  border-radius: 8px;
+  padding: 8px;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  min-width: 260px;
+  max-width: 260px;
+  overflow: hidden;
+}
+
+.treeMatchCard:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #059669;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+/* 轮空占位卡片样式 */
+.placeholderCard {
+  background: rgba(107, 114, 128, 0.1);
+  border: 1px dashed rgba(107, 114, 128, 0.3);
+  border-radius: 8px;
+  padding: 8px;
+  backdrop-filter: blur(10px);
+  min-width: 260px;
+  max-width: 260px;
+  overflow: hidden;
+  opacity: 0.6;
+}
+
+.placeholderContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 60px;
+}
+
+.placeholderText {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.treeMatchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.treeMatchNumber {
+  font-weight: 600;
+  color: #10b981;
+  font-size: 0.8rem;
+}
+
+.treeMatchStatus {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.treeMatchStatus.pending {
+  background: rgba(254, 243, 199, 0.2);
+  color: #fbbf24;
+}
+
+.treeMatchStatus.playing {
+  background: rgba(219, 234, 254, 0.2);
+  color: #60a5fa;
+}
+
+.treeMatchStatus.completed {
+  background: rgba(209, 250, 229, 0.2);
+  color: #34d399;
+}
+
+.treeTeamsContainer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.treeTeamSection {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.treeTeamSection.winner {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+}
+
+.treeTeamName {
+  font-weight: 500;
+  color: #f3f4f6;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.treeTeamScore {
+  font-weight: 700;
+  color: #10b981;
+  font-size: 0.9rem;
+  min-width: 20px;
+  text-align: center;
+}
+
+.treeVsSection {
+  font-weight: 600;
+  color: #9ca3af;
+  font-size: 0.7rem;
+  padding: 0 2px;
+}
+
+.roundsContainer {
+  display: flex; /* 改为flex确保水平排列 */
+  width: 100%; /* 占满容器宽度 */
+  gap: 2.5%; /* 增加间距从1%到2.5% */
+}
+
+.round {
+  display: flex;
+  flex-direction: column;
+  margin: 0; /* 移除左右边距，改用gap控制 */
+  flex: 1; /* 平均分配宽度 */
+  min-width: 120px; /* 设置最小宽度确保可读性 */
+  max-width: none; /* 移除最大宽度限制 */
+  white-space: normal; /* 标题内可以换行 */
+}
+
+.roundTitle {
+  text-align: center;
+  padding: 8px 4px; /* 减少内边距 */
+  background: #f3f4f6;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid #059669;
+  margin: 0 auto 12px auto; /* 居中对齐 */
+  font-size: 1rem; /* 减小字体大小 */
+  font-weight: 600;
+  width: auto; /* 自适应内容宽度 */
+  max-width: 180px; /* 设置最大宽度与比赛卡片一致 */
+  min-width: 120px; /* 设置最小宽度 */
+  color: #1f2937;
+}
+
+.roundHeader {
+  text-align: center;
+  padding: 16px;
+  background: #f3f4f6;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid #059669;
+}
+
+.roundHeader h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.roundHeader span {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.matchesInRound {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 0 0 8px 8px;
+  border: 1px solid #e5e7eb;
+  border-top: none;
+}
+
+.matchCard {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.matchCard:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: #059669;
+}
+
+.matchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.matchNumber {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.matchStatus {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.matchStatus.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.matchStatus.playing {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.matchStatus.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.teamsContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teamSection {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.teamSection.winner {
+  background: #ecfdf5;
+  border-color: #059669;
+}
+
+.teamName {
+  font-weight: 500;
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.teamScore {
+  font-weight: 700;
+  color: #059669;
+  font-size: 1.1rem;
+}
+
+.vsSection {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.8rem;
+  padding: 0 4px;
+}
+
+.courtInfo {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-align: center;
+}

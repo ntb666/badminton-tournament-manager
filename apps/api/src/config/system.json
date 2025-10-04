@@ -1,0 +1,18 @@
+{
+  "tournamentName": "羽毛球锦标赛",
+  "venue": "体育馆",
+  "organizer": "主办方",
+  "contactPhone": "",
+  "contactEmail": "",
+  "defaultGameSettings": "21分制，三局两胜",
+  "courtCount": 5,
+  "hasBronzeMatch": false,
+  "enabledMatchTypes": {
+    "MEN_SINGLE": false,
+    "WOMEN_SINGLE": false,
+    "MEN_DOUBLE": true,
+    "WOMEN_DOUBLE": true,
+    "MIX_DOUBLE": true
+  },
+  "lastUpdated": "2025-10-01T09:54:36.016Z"
+}
