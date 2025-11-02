@@ -1,3 +1,24 @@
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+  runtimeCaching: [
+    {
+      urlPattern: /^https?:\/\/.*\/api\/.*/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'api-cache',
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 60 * 60 // 1 hour
+        },
+        networkTimeoutSeconds: 10
+      }
+    }
+  ]
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // 允许从任何IP访问
@@ -15,4 +36,4 @@ const nextConfig = {
   })
 }
 
-module.exports = nextConfig
+module.exports = withPWA(nextConfig)

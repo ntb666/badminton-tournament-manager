@@ -1,0 +1,5 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#f59e0b"/>
+  <circle cx="256" cy="256" r="160" fill="white" stroke="#1a1a1a" stroke-width="10"/>
+  <text x="256" y="300" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="#1a1a1a" text-anchor="middle">场</text>
+</svg>

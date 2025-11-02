@@ -1,9 +1,25 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { io, Socket } from 'socket.io-client'
-import { Plus, Minus, RotateCcw, Settings, Trophy, Clock, Users } from 'lucide-react'
+import { Plus, Minus, RotateCcw, Settings, Trophy, Clock, Users, Wifi, WifiOff, CloudOff, RefreshCw } from 'lucide-react'
+import { getDB, ScoreData } from '../lib/db'
+import { SyncService, useNetworkStatus } from '../lib/syncService'
+
+// 用于获取URL参数的Hook
+function useUrlParams() {
+  const [courtId, setCourtId] = useState(1)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const id = parseInt(params.get('courtId') || '1')
+      setCourtId(id)
+    }
+  }, [])
+
+  return courtId
+}
 
 type Match = {
   id: number
@@ -92,14 +108,20 @@ const getCurrentServer = (scoreHistory: ScoreHistory[], gameSettings: GameSettin
 };
 
 export default function CourtManager() {
-  const searchParams = useSearchParams()
-  const courtId = parseInt(searchParams.get('courtId') || '1')
+  const courtId = useUrlParams()
   
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null)
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [gameSettings, setGameSettings] = useState<GameSettings>(GAME_PRESETS[2]) // 默认三局两胜21分制
   const [showSettings, setShowSettings] = useState(false)
+  
+  // 网络状态
+  const isOnline = useNetworkStatus()
+  const [syncStatus, setSyncStatus] = useState<'syncing' | 'idle' | 'error'>('idle')
+  const [syncMessage, setSyncMessage] = useState<string>('')
+  const [syncService, setSyncService] = useState<SyncService | null>(null)
+  const [pendingSyncCount, setPendingSyncCount] = useState(0)
   
   // 比分历史记录
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([
@@ -112,6 +134,42 @@ export default function CourtManager() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://100.74.143.98:4001'
   const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://100.74.143.98:4001'
+
+  // 初始化同步服务
+  useEffect(() => {
+    const service = new SyncService((status, message) => {
+      setSyncStatus(status)
+      setSyncMessage(message || '')
+    })
+    service.start()
+    setSyncService(service)
+
+    return () => {
+      service.stop()
+    }
+  }, [])
+
+  // 监听网络状态变化，触发同步
+  useEffect(() => {
+    if (isOnline && syncService) {
+      console.log('Network restored, triggering sync')
+      syncService.triggerSync()
+    }
+  }, [isOnline, syncService])
+
+  // 定期检查待同步数据数量
+  useEffect(() => {
+    const checkPendingSync = async () => {
+      const db = getDB()
+      const pending = await db.getAllPendingSync()
+      setPendingSyncCount(pending.length)
+    }
+
+    checkPendingSync()
+    const interval = setInterval(checkPendingSync, 3000)
+
+    return () => clearInterval(interval)
+  }, [scoreHistory])
 
   useEffect(() => {
     // 使用环境变量，确保在客户端也能正确获取
@@ -247,29 +305,84 @@ export default function CourtManager() {
     return totalScore.setsWonA >= neededSets || totalScore.setsWonB >= neededSets
   }, [totalScore, gameSettings])
 
-  // 保存比分到数据库
+  // 保存比分到数据库（支持离线）
   const saveScoreToDatabase = async () => {
     if (!currentMatch) return;
     
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/matches/${currentMatch.id}/score`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          scoreA: totalScore.totalPointsA,
-          scoreB: totalScore.totalPointsB,
-          scoreHistory: scoreHistory,
-          gameSettings: gameSettings,
-        }),
-      });
+    const scoreData: ScoreData = {
+      matchId: currentMatch.id,
+      courtId: courtId,
+      scoreA: totalScore.totalPointsA,
+      scoreB: totalScore.totalPointsB,
+      scoreHistory: scoreHistory,
+      gameSettings: gameSettings,
+      timestamp: Date.now(),
+      synced: false
+    }
 
-      if (!response.ok) {
-        console.error('Failed to save score to database');
+    try {
+      const db = getDB()
+      
+      // 首先保存到本地IndexedDB
+      await db.saveScore(scoreData)
+      console.log('Score saved to local DB')
+
+      // 如果在线，尝试立即同步到服务器
+      if (isOnline && navigator.onLine) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/matches/${currentMatch.id}/score`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              scoreA: totalScore.totalPointsA,
+              scoreB: totalScore.totalPointsB,
+              scoreHistory: scoreHistory,
+              gameSettings: gameSettings,
+            }),
+          })
+
+          if (response.ok) {
+            console.log('Score synced to server immediately')
+            // 标记为已同步
+            scoreData.synced = true
+          } else {
+            throw new Error('Server response not ok')
+          }
+        } catch (error) {
+          console.error('Failed to sync immediately, adding to queue:', error)
+          
+          // 添加到待同步队列
+          await db.addToPendingSync({
+            matchId: currentMatch.id,
+            data: {
+              scoreA: totalScore.totalPointsA,
+              scoreB: totalScore.totalPointsB,
+              scoreHistory: scoreHistory,
+              gameSettings: gameSettings,
+            },
+            timestamp: Date.now(),
+            retries: 0
+          })
+        }
+      } else {
+        // 离线状态，直接添加到待同步队列
+        console.log('Offline, adding to sync queue')
+        await db.addToPendingSync({
+          matchId: currentMatch.id,
+          data: {
+            scoreA: totalScore.totalPointsA,
+            scoreB: totalScore.totalPointsB,
+            scoreHistory: scoreHistory,
+            gameSettings: gameSettings,
+          },
+          timestamp: Date.now(),
+          retries: 0
+        })
       }
     } catch (error) {
-      console.error('Error saving score:', error);
+      console.error('Error saving score:', error)
     }
   };
 
@@ -425,12 +538,38 @@ export default function CourtManager() {
               </p>
             </div>
             <div className="flex items-center justify-center gap-2">
+              {/* 网络状态指示 */}
               <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-xs ${
-                isConnected ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'
+                isOnline ? 'bg-green-600/20 text-green-400' : 'bg-orange-600/20 text-orange-400'
               }`}>
-                <div className={`w-1 h-1 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                {isConnected ? '已连接' : '连接中...'}
+                {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                <span>{isOnline ? '在线' : '离线'}</span>
               </div>
+              
+              {/* WebSocket连接状态 */}
+              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-xs ${
+                isConnected ? 'bg-blue-600/20 text-blue-400' : 'bg-gray-600/20 text-gray-400'
+              }`}>
+                <div className={`w-1 h-1 rounded-full ${isConnected ? 'bg-blue-400' : 'bg-gray-400'}`}></div>
+                {isConnected ? 'WS' : '断开'}
+              </div>
+              
+              {/* 同步状态指示 */}
+              {(pendingSyncCount > 0 || syncStatus === 'syncing') && (
+                <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-xs ${
+                  syncStatus === 'syncing' ? 'bg-blue-600/20 text-blue-400' : 
+                  syncStatus === 'error' ? 'bg-red-600/20 text-red-400' : 
+                  'bg-yellow-600/20 text-yellow-400'
+                }`}>
+                  {syncStatus === 'syncing' ? (
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <CloudOff className="w-3 h-3" />
+                  )}
+                  <span>{pendingSyncCount > 0 ? `待同步 ${pendingSyncCount}` : '同步中'}</span>
+                </div>
+              )}
+              
               <button
                 onClick={() => setShowSettings(!showSettings)}
                 className="p-1 bg-slate-700 rounded-md hover:bg-slate-600 transition-colors"
@@ -466,6 +605,27 @@ export default function CourtManager() {
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* 离线模式提示 */}
+        {!isOnline && (
+          <div className="bg-orange-600/20 border border-orange-500/50 rounded-lg p-2 mb-3 flex items-center gap-2">
+            <WifiOff className="w-4 h-4 text-orange-400 flex-shrink-0" />
+            <div className="text-xs text-orange-200">
+              <div className="font-medium">离线模式</div>
+              <div className="text-orange-300/80">比分已保存到本地，网络恢复后将自动同步</div>
+            </div>
+          </div>
+        )}
+
+        {/* 同步消息提示 */}
+        {syncMessage && syncStatus === 'error' && (
+          <div className="bg-red-600/20 border border-red-500/50 rounded-lg p-2 mb-3 flex items-center gap-2">
+            <CloudOff className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <div className="text-xs text-red-200">
+              {syncMessage}
             </div>
           </div>
         )}
