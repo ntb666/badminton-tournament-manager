@@ -18,9 +18,11 @@ import {
   Users,
   Trophy,
   Target,
-  MapPin
+  MapPin,
+  PenTool
 } from "lucide-react";
 import styles from "./AdminPanel.module.css";
+import ManualBracketAssignment from "./ManualBracketAssignment";
 
 interface Team {
   id: number;
@@ -47,7 +49,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ onBack }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'teams' | 'import' | 'bracket' | 'assign' | 'export' | 'config' | 'database' | 'reset'>('teams');
+  const [activeTab, setActiveTab] = useState<'teams' | 'import' | 'bracket' | 'manual-bracket' | 'assign' | 'export' | 'config' | 'database' | 'reset'>('teams');
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
@@ -77,6 +79,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   const [seedPlayers, setSeedPlayers] = useState<{ [teamId: number]: number }>({});
   const [generatingBracket, setGeneratingBracket] = useState(false);
   const [bracketGenerated, setBracketGenerated] = useState(false);
+  
+  // 手动分配赛程相关状态
+  const [manualBracketMatchType, setManualBracketMatchType] = useState<string>('MEN_DOUBLE');
 
   // 配置状态
   const [config, setConfig] = useState({
@@ -707,7 +712,14 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           onClick={() => setActiveTab('bracket')}
         >
           <Zap size={18} />
-          生成赛程
+          自动生成赛程
+        </button>
+        <button 
+          className={`${styles.tabButton} ${activeTab === 'manual-bracket' ? styles.active : ''}`}
+          onClick={() => setActiveTab('manual-bracket')}
+        >
+          <PenTool size={18} />
+          手动分配赛程
         </button>
         <button 
           className={`${styles.tabButton} ${activeTab === 'assign' ? styles.active : ''}`}
@@ -1217,15 +1229,59 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
           </div>
         )}
 
-        {/* 生成赛程标签页 */}
+        {/* 手动分配赛程标签页 */}
+        {activeTab === 'manual-bracket' && (
+          <div className={styles.tabContent}>
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <PenTool size={24} />
+                <div>
+                  <h3>手动分配赛程树</h3>
+                  <p>手动选择每个对阵位置的队伍</p>
+                </div>
+              </div>
+              
+              <div className={styles.cardContent}>
+                {/* 比赛类型选择 */}
+                <div className={styles.bracketTypeSection}>
+                  <h4>选择比赛类型</h4>
+                  <select 
+                    value={manualBracketMatchType} 
+                    onChange={(e) => setManualBracketMatchType(e.target.value)}
+                    className={styles.matchTypeSelect}
+                  >
+                    <option value="MEN_DOUBLE">男双</option>
+                    <option value="WOMEN_DOUBLE">女双</option>
+                    <option value="MIX_DOUBLE">混双</option>
+                    <option value="MEN_SINGLE">男单</option>
+                    <option value="WOMEN_SINGLE">女单</option>
+                  </select>
+                </div>
+
+                {/* 手动分配组件 */}
+                <ManualBracketAssignment 
+                  matchType={manualBracketMatchType}
+                  onComplete={() => {
+                    showNotification('success', '手动赛程分配完成！');
+                    fetchMatches();
+                    setActiveTab('bracket');
+                  }}
+                  onCancel={() => setActiveTab('bracket')}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 自动生成赛程标签页 */}
         {activeTab === 'bracket' && (
           <div className={styles.tabContent}>
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <Zap size={24} />
                 <div>
-                  <h3>生成赛程树</h3>
-                  <p>设置种子选手并生成比赛赛程</p>
+                  <h3>自动生成赛程树</h3>
+                  <p>设置种子选手并自动随机生成比赛赛程</p>
                 </div>
               </div>
               

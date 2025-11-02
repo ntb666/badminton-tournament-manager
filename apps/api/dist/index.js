@@ -770,6 +770,232 @@ app.post("/api/schedule/clear-bracket", async (req, res) => {
     }
 });
 /**
+ * 手动生成赛程树
+ * 路由：POST /api/schedule/generate-bracket-manual
+ * 参数：matchType, manualAssignment, round1, round2
+ */
+app.post("/api/schedule/generate-bracket-manual", async (req, res) => {
+    try {
+        const { matchType, manualAssignment = true, round1 = [], round2 = [] } = req.body;
+        if (!matchType) {
+            return res.status(400).json({ error: '请指定比赛类型' });
+        }
+        console.log(`🎯 开始手动生成赛程: ${matchType}`);
+        console.log(`   第一轮: ${round1.length} 场对阵`);
+        console.log(`   第二轮: ${round2.length} 场对阵`);
+        // 1. 检查是否已有该类型的赛程，如果有则先清空
+        const existingTournament = await prisma.tournament.findFirst({
+            where: { matchType }
+        });
+        if (existingTournament) {
+            await prisma.match.deleteMany({
+                where: { matchType }
+            });
+            await prisma.tournamentTeam.deleteMany({
+                where: { tournamentId: existingTournament.id }
+            });
+            await prisma.tournamentRound.deleteMany({
+                where: { tournamentId: existingTournament.id }
+            });
+            await prisma.tournament.delete({
+                where: { id: existingTournament.id }
+            });
+        }
+        // 2. 计算赛程参数
+        const M = round1.length * 2; // 括号数量
+        const totalRounds = Math.log2(M);
+        console.log(`📋 手动赛程参数:`);
+        console.log(`   - M (扩展到2的幂次): ${M}个位置`);
+        console.log(`   - 总轮数: ${totalRounds}轮`);
+        // 3. 创建Tournament记录
+        const tournament = await prisma.tournament.create({
+            data: {
+                name: `${getMatchTypeName(matchType)}淘汰赛（手动分配）`,
+                matchType: matchType,
+                status: 'active',
+                totalRounds,
+                totalTeams: 0, // 手动分配时不确定总队伍数
+                tournamentType: 'single_elimination',
+                seedingMethod: 'manual',
+                hasBronzeMatch: false
+            }
+        });
+        console.log(`✅ 创建锦标赛记录: ID=${tournament.id}`);
+        // 4. 创建轮次记录
+        const rounds = [];
+        for (let i = 0; i < totalRounds; i++) {
+            const roundNumber = i + 1;
+            let roundName = `第${roundNumber}轮`;
+            if (roundNumber === totalRounds)
+                roundName = '决赛';
+            else if (roundNumber === totalRounds - 1)
+                roundName = '半决赛';
+            else if (roundNumber === totalRounds - 2)
+                roundName = '四分之一决赛';
+            else if (roundNumber === totalRounds - 3)
+                roundName = '八分之一决赛';
+            const round = await prisma.tournamentRound.create({
+                data: {
+                    tournamentId: tournament.id,
+                    roundNumber,
+                    roundName,
+                    totalMatches: 0,
+                    status: 'pending'
+                }
+            });
+            rounds.push(round);
+        }
+        console.log(`✅ 创建${rounds.length}个轮次记录`);
+        // 5. 创建第一轮比赛
+        const allMatches = [];
+        const firstRound = rounds[0];
+        if (!firstRound) {
+            throw new Error('无法创建第一轮比赛：rounds为空');
+        }
+        for (let i = 0; i < round1.length; i++) {
+            const matchData = round1[i];
+            const teamAId = matchData.teamAId || null;
+            const teamBId = matchData.teamBId || null;
+            // 确定比赛状态
+            let status = 'pending';
+            if (teamAId && teamBId) {
+                status = 'scheduled'; // 双方都确定
+            }
+            else if (teamAId || teamBId) {
+                status = 'pending'; // 一方轮空，待晋级
+            }
+            else {
+                status = 'bye'; // 双方都空
+            }
+            const match = await prisma.match.create({
+                data: {
+                    matchType: matchType,
+                    tournamentId: tournament.id,
+                    roundId: firstRound.id,
+                    round: firstRound.roundNumber,
+                    treePosition: i,
+                    matchNumber: `R${firstRound.roundNumber}-M${i + 1}`,
+                    teamAId,
+                    teamBId,
+                    status
+                }
+            });
+            allMatches.push(match);
+            console.log(`   第一轮比赛${i + 1}: ${teamAId || 'null'} vs ${teamBId || 'null'} (${status})`);
+        }
+        await prisma.tournamentRound.update({
+            where: { id: firstRound.id },
+            data: { totalMatches: round1.length }
+        });
+        // 6. 创建第二轮比赛
+        if (rounds.length > 1 && round2.length > 0) {
+            const secondRound = rounds[1];
+            if (!secondRound) {
+                throw new Error('无法创建第二轮比赛：round为空');
+            }
+            for (let i = 0; i < round2.length; i++) {
+                const matchData = round2[i];
+                const teamAId = matchData.teamAId || null;
+                const teamBId = matchData.teamBId || null;
+                let status = 'pending';
+                if (teamAId && teamBId) {
+                    status = 'scheduled';
+                }
+                const match = await prisma.match.create({
+                    data: {
+                        matchType: matchType,
+                        tournamentId: tournament.id,
+                        roundId: secondRound.id,
+                        round: secondRound.roundNumber,
+                        treePosition: i,
+                        matchNumber: `R${secondRound.roundNumber}-M${i + 1}`,
+                        teamAId,
+                        teamBId,
+                        status
+                    }
+                });
+                allMatches.push(match);
+                console.log(`   第二轮比赛${i + 1}: ${teamAId || '待定'} vs ${teamBId || '待定'} (${status})`);
+            }
+            await prisma.tournamentRound.update({
+                where: { id: secondRound.id },
+                data: { totalMatches: round2.length }
+            });
+        }
+        // 7. 创建后续轮次的空框架
+        for (let roundIndex = 2; roundIndex < rounds.length; roundIndex++) {
+            const round = rounds[roundIndex];
+            if (!round)
+                continue;
+            const matchesInRound = M / (2 ** (roundIndex + 1));
+            for (let matchIndex = 0; matchIndex < matchesInRound; matchIndex++) {
+                const match = await prisma.match.create({
+                    data: {
+                        matchType: matchType,
+                        tournamentId: tournament.id,
+                        roundId: round.id,
+                        round: round.roundNumber,
+                        treePosition: matchIndex,
+                        matchNumber: `R${round.roundNumber}-M${matchIndex + 1}`,
+                        teamAId: null,
+                        teamBId: null,
+                        status: 'pending'
+                    }
+                });
+                allMatches.push(match);
+            }
+            await prisma.tournamentRound.update({
+                where: { id: round.id },
+                data: { totalMatches: matchesInRound }
+            });
+        }
+        // 8. 设置比赛的父子关系
+        console.log(`设置比赛的父子关系...`);
+        const matchesByRound = allMatches.reduce((acc, match) => {
+            if (!acc[match.round])
+                acc[match.round] = [];
+            acc[match.round].push(match);
+            return acc;
+        }, {});
+        for (let roundNum = 1; roundNum < totalRounds; roundNum++) {
+            const currentRoundMatches = matchesByRound[roundNum] || [];
+            const nextRoundMatches = matchesByRound[roundNum + 1] || [];
+            for (let i = 0; i < currentRoundMatches.length; i++) {
+                const currentMatch = currentRoundMatches[i];
+                const nextMatchIndex = Math.floor(i / 2);
+                const nextMatch = nextRoundMatches[nextMatchIndex];
+                if (nextMatch) {
+                    await prisma.match.update({
+                        where: { id: currentMatch.id },
+                        data: { parentId: nextMatch.id }
+                    });
+                }
+            }
+        }
+        console.log(`🎉 手动赛程生成完成！总计${allMatches.length}场比赛`);
+        // 发送WebSocket通知
+        io.emit('scheduleUpdate', {
+            action: 'generate-manual',
+            matchType,
+            matches: allMatches.length,
+            tournamentId: tournament.id
+        });
+        io.emit('court-status-update');
+        io.emit('pending-matches-update');
+        res.json({
+            success: true,
+            message: `成功手动生成${getMatchTypeName(matchType)}赛程`,
+            tournament,
+            rounds: rounds.length,
+            matches: allMatches.length
+        });
+    }
+    catch (error) {
+        console.error('Error generating manual bracket:', error);
+        res.status(500).json({ error: error.message || '手动生成赛程失败' });
+    }
+});
+/**
  * 获取比赛类型中文名称
  *
  * @param matchType 比赛类型英文标识
